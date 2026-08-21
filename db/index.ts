@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
-export function getDb(){ if(!env.DB) throw new Error("D1 binding DB unavailable"); return drizzle(env.DB,{schema}); }
+import { getRuntimeEnv } from "../lib/runtime-env";
+export function getDb(){ const db=getRuntimeEnv().DB; if(!db) throw new Error("D1 binding DB unavailable"); return drizzle(db,{schema}); }

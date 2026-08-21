@@ -13,7 +13,7 @@
     "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
     "db:create": "wrangler d1 create avaliacao-processamento-db",
     "db:migrate": "wrangler d1 migrations apply avaliacao-processamento-db --remote",
-    "test": "npm run build && node scripts/validate-cloudflare-build.mjs",
+    "test": "npm run build && node scripts/validate-cloudflare-build.mjs && node --test tests/*.test.mjs",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate"
   },

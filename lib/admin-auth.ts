@@ -1,9 +1,18 @@
-import { env } from "cloudflare:workers";
+import { getRuntimeEnv } from "./runtime-env";
 
-const runtime=()=>env as unknown as {ADMIN_PASSWORD?:string,ADMIN_SESSION_SECRET?:string};
+const runtime=()=>getRuntimeEnv();
 
 export function adminConfigured(){const values=runtime();return Boolean(values.ADMIN_PASSWORD&&values.ADMIN_SESSION_SECRET)}
-export function validAdminPassword(password:string){const expected=runtime().ADMIN_PASSWORD;return Boolean(expected&&password===expected)}
+export async function validAdminPassword(password:string){
+ const expected=runtime().ADMIN_PASSWORD;
+ if(!expected)return false;
+ const encoder=new TextEncoder();
+ const [providedHash,expectedHash]=await Promise.all([
+  crypto.subtle.digest("SHA-256",encoder.encode(password)),
+  crypto.subtle.digest("SHA-256",encoder.encode(expected)),
+ ]);
+ return crypto.subtle.timingSafeEqual(providedHash,expectedHash);
+}
 export function adminSessionValue(){return runtime().ADMIN_SESSION_SECRET||""}
 export function isAdmin(request:Request){
  const expected=adminSessionValue();

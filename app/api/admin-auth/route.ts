@@ -4,7 +4,7 @@ export async function GET(request:Request){return Response.json({authenticated:i
 export async function POST(request:Request){
  try{
   const {password}=await request.json() as {password?:string};
-  if(!password||!validAdminPassword(password))return Response.json({error:"Senha incorreta"},{status:401});
+  if(!password||!(await validAdminPassword(password)))return Response.json({error:"Senha incorreta"},{status:401});
   const response=Response.json({authenticated:true});
   response.headers.set("Set-Cookie",`perkons_admin=${encodeURIComponent(adminSessionValue())}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800`);
   return response;

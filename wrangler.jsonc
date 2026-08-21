@@ -4,6 +4,9 @@
   "main": "./worker/index.ts",
   "compatibility_date": "2026-08-21",
   "compatibility_flags": ["nodejs_compat"],
+  "secrets": {
+    "required": ["ADMIN_PASSWORD", "ADMIN_SESSION_SECRET"]
+  },
   "d1_databases": [
     {
       "binding": "DB",
