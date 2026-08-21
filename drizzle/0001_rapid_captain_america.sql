@@ -1,0 +1,1 @@
+ALTER TABLE `results` ADD `practical_answers` text DEFAULT '[]' NOT NULL;

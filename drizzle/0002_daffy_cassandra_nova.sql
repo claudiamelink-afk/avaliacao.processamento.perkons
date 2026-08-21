@@ -1,0 +1,1 @@
+ALTER TABLE `results` ADD `response_details` text DEFAULT '{}' NOT NULL;

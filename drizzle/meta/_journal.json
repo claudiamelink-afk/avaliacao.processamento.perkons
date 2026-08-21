@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1787237826923,
+      "tag": "0000_low_maria_hill",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787245311929,
+      "tag": "0001_rapid_captain_america",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787245605205,
+      "tag": "0002_daffy_cassandra_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1787246897716,
+      "tag": "0003_wealthy_shinobi_shaw",
+      "breakpoints": true
+    }
+  ]
+}
