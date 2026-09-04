@@ -18,8 +18,7 @@ const fromHex=(value:string)=>new Uint8Array(value.match(/.{1,2}/g)?.map(byte=>p
 
 export async function ensureAdminTables(){
  const db=getRuntimeEnv().DB;
- await db.exec(`
- CREATE TABLE IF NOT EXISTS admin_users (
+ await db.prepare(`CREATE TABLE IF NOT EXISTS admin_users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT NOT NULL COLLATE NOCASE UNIQUE,
@@ -29,22 +28,22 @@ export async function ensureAdminTables(){
   is_active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
- );
- CREATE TABLE IF NOT EXISTS admin_sessions (
+ )`).run();
+ await db.prepare(`CREATE TABLE IF NOT EXISTS admin_sessions (
   token_hash TEXT PRIMARY KEY,
   user_id INTEGER NOT NULL,
   expires_at TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES admin_users(id) ON DELETE CASCADE
- );
- CREATE INDEX IF NOT EXISTS admin_sessions_user_id_idx ON admin_sessions(user_id);
- `);
+ )`).run();
+ await db.prepare("CREATE INDEX IF NOT EXISTS admin_sessions_user_id_idx ON admin_sessions(user_id)").run();
+
 }
 
 export async function passwordRecord(password:string,saltValue?:string){
  const salt=saltValue?fromHex(saltValue):crypto.getRandomValues(new Uint8Array(16));
  const material=await crypto.subtle.importKey("raw",encoder.encode(password),"PBKDF2",false,["deriveBits"]);
- const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:120000},material,256);
+ const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:100000},material,256);
  return {hash:hex(new Uint8Array(bits)),salt:hex(salt)};
 }
 
