@@ -20,7 +20,7 @@ export async function GET(){
 
 export async function PUT(request:Request){
  try{
-  if(!isAdmin(request))return unauthorized();
+  if(!(await isAdmin(request)))return unauthorized();
   const data=await request.json() as {config?:unknown};
   if(!valid(data.config))return Response.json({error:"Revise os campos de todas as etapas antes de salvar."},{status:400});
   await getDb().insert(questionSettings).values({id:1,questions:JSON.stringify(data.config),updatedAt:new Date().toISOString()}).onConflictDoUpdate({target:questionSettings.id,set:{questions:JSON.stringify(data.config),updatedAt:new Date().toISOString()}});
