@@ -1,11 +1,22 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "../../../db";
-import { results } from "../../../db/schema";
+import { questionSettings, results } from "../../../db/schema";
 import { isAdmin, unauthorized } from "../../../lib/admin-auth";
 export async function GET(request:Request){if(!isAdmin(request))return unauthorized();try { return Response.json({results:await getDb().select().from(results).orderBy(desc(results.id)).limit(250)}); } catch { return Response.json({results:[]}); } }
 export async function POST(request:Request){
- try { const data=await request.json() as typeof results.$inferInsert; if(!data.name?.trim()||!data.email?.trim()) return Response.json({error:"Dados obrigatórios"},{status:400}); const [result]=await getDb().insert(results).values(data).returning(); return Response.json({result},{status:201}); }
- catch { return Response.json({error:"Não foi possível salvar"},{status:500}); }
+ try {
+  const data=await request.json() as typeof results.$inferInsert;
+  if(!data.name?.trim()||!data.email?.trim())return Response.json({error:"Nome e e-mail são obrigatórios."},{status:400});
+  const db=getDb();
+  const [settingRow]=await db.select().from(questionSettings).where(eq(questionSettings.id,1)).limit(1);
+  let maxAttempts=2;
+  if(settingRow){try{const saved=JSON.parse(settingRow.questions) as {settings?:{maxAttempts?:number}};maxAttempts=Math.max(1,Number(saved.settings?.maxAttempts)||2)}catch{}}
+  const normalizedEmail=data.email.trim().toLowerCase();
+  const [attemptRow]=await db.select({total:count()}).from(results).where(sql`lower(${results.email}) = ${normalizedEmail}`);
+  if((Number(attemptRow?.total)||0)>=maxAttempts)return Response.json({error:`O limite de ${maxAttempts} tentativa(s) para este e-mail foi atingido.`},{status:409});
+  const [result]=await db.insert(results).values({...data,email:normalizedEmail}).returning();
+  return Response.json({result},{status:201});
+ }catch{return Response.json({error:"Não foi possível salvar"},{status:500})}
 }
 export async function PATCH(request:Request){
  try{
