@@ -6,7 +6,7 @@
 
 A aplicação não recebe nem processa documentos XML. As rotas de entrada utilizam JSON por meio de `request.json()`, e o projeto não inclui parser XML. Os parâmetros enviados pelo usuário são tratados como texto e não como entidades XML.
 
-Os relatórios não apresentaram evidência nem callback out-of-band. Caso a equipe de TI deseje uma confirmação dinâmica adicional, poderá repetir o teste com domínio OOB; a ausência de callback confirma que não há resolução de entidade externa.
+Os relatórios não apresentaram evidência nem callback out-of-band. Além da ausência de parser XML, o Worker agora rejeita explicitamente requisições com Content-Type `application/xml` ou `text/xml`, retornando HTTP 415. Caso a equipe de TI deseje uma confirmação dinâmica adicional, poderá repetir o teste com domínio OOB; a ausência de callback confirma que não há resolução de entidade externa.
 
 ## Cabeçalhos HTTP — IDs 30 a 35
 
@@ -19,7 +19,9 @@ Tratamento centralizado em `worker/index.ts`:
 - Referrer-Policy
 - Permissions-Policy
 
-A CSP mantém apenas recursos da própria aplicação. `unsafe-inline` foi preservado para scripts e estilos gerados pelo framework; os demais carregamentos são restritos à mesma origem. `frame-ancestors 'none'` e `X-Frame-Options: DENY` impedem incorporação em frames.
+A CSP ativa mantém apenas recursos da própria aplicação. `unsafe-inline` foi preservado para scripts e estilos gerados pelo framework; os demais carregamentos são restritos à mesma origem. `frame-ancestors 'none'` e `X-Frame-Options: DENY` impedem incorporação em frames.
+
+Uma segunda política mais restritiva é enviada em `Content-Security-Policy-Report-Only`, sem `unsafe-inline`. Violações são encaminhadas para `/api/csp-report` e registradas nos logs do Worker, com limite de 64 KB por relatório. Após o período de monitoramento, a política ativa poderá ser endurecida com segurança.
 
 O HSTS foi aplicado sem `includeSubDomains` e sem `preload`, evitando impacto indevido em outros serviços.
 
