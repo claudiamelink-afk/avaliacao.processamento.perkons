@@ -14,7 +14,8 @@
     "db:migrate": "node scripts/migrate-postgres.mjs",
     "dev:cloudflare": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite",
     "build:cloudflare": "vinext build",
-    "deploy:cloudflare": "npm run build:cloudflare && wrangler deploy --config dist/server/wrangler.json"
+    "deploy:cloudflare": "npm run build:cloudflare && wrangler deploy --config dist/server/wrangler.json",
+    "db:import:d1": "node scripts/import-d1-to-postgres.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
