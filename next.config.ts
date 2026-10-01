@@ -16,6 +16,7 @@ const enforcedCsp=[
 
 const nextConfig:NextConfig={
  output:"standalone",
+ serverExternalPackages:["pg"],
  poweredByHeader:false,
  async headers(){
   return[{
