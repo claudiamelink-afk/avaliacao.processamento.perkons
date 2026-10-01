@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { ensureDatabase } from "../db/bootstrap";
 
 export type AdminUserRow={
@@ -28,7 +29,7 @@ export async function passwordRecord(password:string,saltValue?:string){
 export async function passwordMatches(password:string,user:AdminUserRow){
  const calculated=await passwordRecord(password,user.password_salt);
  const supplied=fromHex(calculated.hash),expected=fromHex(user.password_hash);
- return supplied.length===expected.length&&crypto.subtle.timingSafeEqual(supplied,expected);
+ return supplied.length===expected.length&&timingSafeEqual(Buffer.from(supplied),Buffer.from(expected));
 }
 
 export async function tokenHash(token:string){
