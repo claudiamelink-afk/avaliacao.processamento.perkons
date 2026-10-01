@@ -49,6 +49,7 @@ Use `docker compose down -v` somente quando for desejado apagar o banco local de
 | `DB_POOL_MAX` | Limite do pool; padrão 10 |
 | `DB_SSL` | `true` quando o PostgreSQL exige TLS |
 | `DB_SSL_REJECT_UNAUTHORIZED` | Deve permanecer `true` em produção |
+| `COOKIE_SECURE` | `true` em produção; use `false` apenas no teste HTTP local |
 
 Segredos não devem ser gravados na imagem, no Git ou no `docker-compose.yml` de produção. A infraestrutura deve fornecê-los pelo gerenciador corporativo.
 
