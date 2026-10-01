@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { getPool } from "../db";
 import { getRuntimeEnv } from "./runtime-env";
 import { ensureAdminTables, tokenHash, type AdminUserRow } from "./admin-users";
@@ -32,7 +33,7 @@ export async function validPrimaryPassword(password:string){
   crypto.subtle.digest("SHA-256",encoder.encode(password)),
   crypto.subtle.digest("SHA-256",encoder.encode(expected)),
  ]);
- return crypto.subtle.timingSafeEqual(providedHash,expectedHash);
+ return timingSafeEqual(Buffer.from(providedHash),Buffer.from(expectedHash));
 }
 
 export function primarySessionValue(){return runtime().ADMIN_SESSION_SECRET||""}
