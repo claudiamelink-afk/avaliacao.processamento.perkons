@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+import { getPool } from "../db";
 import { getRuntimeEnv } from "./runtime-env";
 import { ensureAdminTables, tokenHash, type AdminUserRow } from "./admin-users";
 
@@ -31,7 +33,7 @@ export async function validPrimaryPassword(password:string){
   crypto.subtle.digest("SHA-256",encoder.encode(password)),
   crypto.subtle.digest("SHA-256",encoder.encode(expected)),
  ]);
- return crypto.subtle.timingSafeEqual(providedHash,expectedHash);
+ return timingSafeEqual(Buffer.from(providedHash),Buffer.from(expectedHash));
 }
 
 export function primarySessionValue(){return runtime().ADMIN_SESSION_SECRET||""}
@@ -44,11 +46,12 @@ export async function getAdminSession(request:Request):Promise<AdminSession|null
  if(!value.startsWith("u:"))return null;
  await ensureAdminTables();
  const hash=await tokenHash(value.slice(2));
- const row=await runtime().DB.prepare(`
+ const {rows}=await getPool().query<{id:number,name:string,email:string,must_change_password:boolean,is_active:boolean}>(`
   SELECT u.id,u.name,u.email,u.must_change_password,u.is_active
   FROM admin_sessions s JOIN admin_users u ON u.id=s.user_id
-  WHERE s.token_hash=? AND s.expires_at>CURRENT_TIMESTAMP LIMIT 1
- `).bind(hash).first<{id:number,name:string,email:string,must_change_password:number,is_active:number}>();
+  WHERE s.token_hash=$1 AND s.expires_at>CURRENT_TIMESTAMP LIMIT 1
+ `,[hash]);
+ const row=rows[0];
  if(!row||!row.is_active)return null;
  return{id:row.id,name:row.name,email:row.email,isSuperAdmin:false,mustChangePassword:Boolean(row.must_change_password)};
 }
@@ -63,11 +66,13 @@ export async function isPrimaryAdmin(request:Request){
 }
 
 export function setSessionCookie(response:Response,value:string){
- response.headers.set("Set-Cookie",`${COOKIE}=${encodeURIComponent(value)}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800`);
+ const secure=process.env.COOKIE_SECURE==="false"?"":"; Secure";
+ response.headers.set("Set-Cookie",`${COOKIE}=${encodeURIComponent(value)}; HttpOnly${secure}; SameSite=Strict; Path=/; Max-Age=28800`);
 }
 
 export function clearSessionCookie(response:Response){
- response.headers.set("Set-Cookie",`${COOKIE}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`);
+ const secure=process.env.COOKIE_SECURE==="false"?"":"; Secure";
+ response.headers.set("Set-Cookie",`${COOKIE}=; HttpOnly${secure}; SameSite=Strict; Path=/; Max-Age=0`);
 }
 
 export function unauthorized(){return Response.json({error:"Acesso administrativo não autorizado"},{status:401})}

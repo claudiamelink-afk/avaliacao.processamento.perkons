@@ -1,10 +1,12 @@
 import { count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "../../../db";
+import { ensureDatabase } from "../../../db/bootstrap";
 import { questionSettings, results } from "../../../db/schema";
 import { isAdmin, unauthorized } from "../../../lib/admin-auth";
-export async function GET(request:Request){if(!(await isAdmin(request)))return unauthorized();try { return Response.json({results:await getDb().select().from(results).orderBy(desc(results.id)).limit(250)}); } catch { return Response.json({results:[]}); } }
+export async function GET(request:Request){if(!(await isAdmin(request)))return unauthorized();try { await ensureDatabase(); return Response.json({results:await getDb().select().from(results).orderBy(desc(results.id)).limit(250)}); } catch { return Response.json({results:[]}); } }
 export async function POST(request:Request){
  try {
+  await ensureDatabase();
   const data=await request.json() as typeof results.$inferInsert;
   if(!data.name?.trim()||!data.email?.trim())return Response.json({error:"Nome e e-mail são obrigatórios."},{status:400});
   const db=getDb();
@@ -21,6 +23,7 @@ export async function POST(request:Request){
 export async function PATCH(request:Request){
  try{
   if(!(await isAdmin(request)))return unauthorized();
+  await ensureDatabase();
   const data=await request.json() as {id?:number,email?:string,status?:string};
   const allowed=["Reprovado","Aprovado","Em análise","Banco"];
   if(!data.status||!allowed.includes(data.status)||(!data.id&&!data.email))return Response.json({error:"Status inválido"},{status:400});
@@ -32,6 +35,7 @@ export async function PATCH(request:Request){
 export async function DELETE(request:Request){
  try{
   if(!(await isAdmin(request)))return unauthorized();
+  await ensureDatabase();
   const data=await request.json() as {id?:number};
   if(!data.id)return Response.json({error:"Candidato inválido"},{status:400});
   const [deleted]=await getDb().delete(results).where(eq(results.id,data.id)).returning({id:results.id});

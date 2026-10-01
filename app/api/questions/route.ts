@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "../../../db";
+import { ensureDatabase } from "../../../db/bootstrap";
 import { questionSettings } from "../../../db/schema";
 import { isAdmin, unauthorized } from "../../../lib/admin-auth";
 
@@ -11,6 +12,7 @@ const valid=(config:unknown):config is TestConfig=>{if(!config||typeof config!==
 
 export async function GET(){
  try{
+  await ensureDatabase();
   const [row]=await getDb().select().from(questionSettings).where(eq(questionSettings.id,1)).limit(1);
   if(!row)return Response.json({config:null});
   const saved=JSON.parse(row.questions);
@@ -21,6 +23,7 @@ export async function GET(){
 export async function PUT(request:Request){
  try{
   if(!(await isAdmin(request)))return unauthorized();
+  await ensureDatabase();
   const data=await request.json() as {config?:unknown};
   if(!valid(data.config))return Response.json({error:"Revise os campos de todas as etapas antes de salvar."},{status:400});
   await getDb().insert(questionSettings).values({id:1,questions:JSON.stringify(data.config),updatedAt:new Date().toISOString()}).onConflictDoUpdate({target:questionSettings.id,set:{questions:JSON.stringify(data.config),updatedAt:new Date().toISOString()}});

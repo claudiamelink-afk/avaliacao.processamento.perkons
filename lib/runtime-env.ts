@@ -1,18 +1,18 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-export type RuntimeEnv = Env & {
-  ADMIN_PASSWORD?: string;
-  ADMIN_SESSION_SECRET?: string;
+export type RuntimeEnv={
+ ADMIN_PASSWORD?:string;
+ ADMIN_SESSION_SECRET?:string;
+ [key:string]:unknown;
 };
 
-const runtimeEnv = new AsyncLocalStorage<RuntimeEnv>();
+const runtimeEnv=new AsyncLocalStorage<RuntimeEnv>();
 
-export function runWithRuntimeEnv<T>(env: RuntimeEnv, callback: () => T): T {
-  return runtimeEnv.run(env, callback);
-}
+export function runWithRuntimeEnv<T>(env:RuntimeEnv,callback:()=>T):T{return runtimeEnv.run(env,callback)}
 
-export function getRuntimeEnv(): RuntimeEnv {
-  const env = runtimeEnv.getStore();
-  if (!env) throw new Error("Cloudflare runtime environment unavailable");
-  return env;
+export function getRuntimeEnv():RuntimeEnv{
+ return runtimeEnv.getStore()||{
+  ADMIN_PASSWORD:process.env.ADMIN_PASSWORD,
+  ADMIN_SESSION_SECRET:process.env.ADMIN_SESSION_SECRET
+ };
 }

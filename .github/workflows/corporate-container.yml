@@ -1,0 +1,38 @@
+name: Teste corporativo Docker e PostgreSQL
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  corporate-build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: avaliacao_processamento
+          POSTGRES_USER: avaliacao
+          POSTGRES_PASSWORD: teste_local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U avaliacao -d avaliacao_processamento"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://avaliacao:teste_local@localhost:5432/avaliacao_processamento
+      ADMIN_PASSWORD: senha-de-teste
+      ADMIN_SESSION_SECRET: segredo-de-teste-com-mais-de-32-caracteres
+      DB_SSL: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npm run db:migrate
+      - run: npm run build
+      - run: docker build -t avaliacao-processamento:test .
