@@ -66,11 +66,13 @@ export async function isPrimaryAdmin(request:Request){
 }
 
 export function setSessionCookie(response:Response,value:string){
- response.headers.set("Set-Cookie",`${COOKIE}=${encodeURIComponent(value)}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800`);
+ const secure=process.env.COOKIE_SECURE==="false"?"":"; Secure";
+ response.headers.set("Set-Cookie",`${COOKIE}=${encodeURIComponent(value)}; HttpOnly${secure}; SameSite=Strict; Path=/; Max-Age=28800`);
 }
 
 export function clearSessionCookie(response:Response){
- response.headers.set("Set-Cookie",`${COOKIE}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`);
+ const secure=process.env.COOKIE_SECURE==="false"?"":"; Secure";
+ response.headers.set("Set-Cookie",`${COOKIE}=; HttpOnly${secure}; SameSite=Strict; Path=/; Max-Age=0`);
 }
 
 export function unauthorized(){return Response.json({error:"Acesso administrativo não autorizado"},{status:401})}
