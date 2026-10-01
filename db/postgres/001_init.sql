@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS results (
+ id BIGSERIAL PRIMARY KEY,
+ name TEXT NOT NULL,
+ email TEXT NOT NULL,
+ wpm INTEGER NOT NULL,
+ accuracy INTEGER NOT NULL,
+ infractions INTEGER NOT NULL,
+ plates INTEGER NOT NULL,
+ windows INTEGER NOT NULL,
+ overall INTEGER NOT NULL,
+ status TEXT NOT NULL,
+ practical_answers TEXT NOT NULL DEFAULT '[]',
+ response_details TEXT NOT NULL DEFAULT '{}',
+ created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS results_email_lower_idx ON results (lower(email));
+
+CREATE TABLE IF NOT EXISTS question_settings (
+ id INTEGER PRIMARY KEY,
+ questions TEXT NOT NULL,
+ updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS admin_users (
+ id BIGSERIAL PRIMARY KEY,
+ name TEXT NOT NULL,
+ email TEXT NOT NULL UNIQUE,
+ password_hash TEXT NOT NULL,
+ password_salt TEXT NOT NULL,
+ must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
+ is_active BOOLEAN NOT NULL DEFAULT TRUE,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS admin_sessions (
+ token_hash TEXT PRIMARY KEY,
+ user_id BIGINT NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+ expires_at TIMESTAMPTZ NOT NULL,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS admin_sessions_user_id_idx ON admin_sessions(user_id);
+CREATE INDEX IF NOT EXISTS admin_sessions_expires_at_idx ON admin_sessions(expires_at);
