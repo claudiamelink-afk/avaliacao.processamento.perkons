@@ -21,6 +21,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-trocar-antes-de-produzir}
       ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-trocar-por-segredo-longo-antes-de-produzir}
       DB_SSL: "false"
+      COOKIE_SECURE: "false"
     ports:
       - "3000:3000"
     depends_on:
